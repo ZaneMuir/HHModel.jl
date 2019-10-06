@@ -27,19 +27,19 @@ $$\tau(V) = C_{\text{base}} + C_{\text{amp}} \exp(\frac{- (V_{\text{max}} - V) ^
 """
 mutable struct Kinetics
     _type::Symbol #:evolving, :intantaneous, :empty
-    
+
     Vhalf::Union{Nothing, Real}
     k::Union{Nothing, Real}
     zeta::Union{Nothing, Real}
-    
+
     Cbase::Union{Nothing, Real}
     Camp::Union{Nothing, Real}
     Vmax::Union{Nothing, Real}
     sigma::Union{Nothing, Real}
-    
+
     infty::Function
     tau::Function
-    
+
     "set kinetics"
     Kinetics(Vhalf::Real, k::Real, zeta::Real, Cbase::Real, Camp::Real, Vmax::Real, sigma::Real; state = :activation) = begin
         _sign = state == :activation ? 1 : -1
@@ -47,19 +47,19 @@ mutable struct Kinetics
         _tau = (V) -> Cbase + Camp * exp(- ((Vmax - V) / sigma)^2)
         new(:evolving, Vhalf, k, zeta, Cbase, Camp, Vmax, sigma, _infty, _tau)
     end
-    
+
     "kinetics with constant tau or instantaneous kinetic"
     Kinetics(Vhalf::Real, k::Real, zeta::Real; _tau = (x)->1, _type=:evolving, state = :activation) = begin
         _sign = state == :activation ? 1 : -1
         _infty = (V) -> (1 - zeta) / (1 + exp(_sign * (Vhalf - V) / k)) + zeta
         new(_type, Vhalf, k, zeta, nothing, nothing, nothing, nothing, _infty, _tau)
     end
-    
+
     "custom infty and tau functions"
     Kinetics(infty::Function, tau::Function) = begin
         new(:evolving, nothing, nothing, nothing, nothing, nothing, nothing, nothing, infty, tau)
     end
-    
+
     "empty kinetics"
     Kinetics() = begin
         new(:empty, nothing, nothing, nothing, nothing, nothing, nothing, nothing, (x)->1, (x)->1)
@@ -126,19 +126,19 @@ function update!(ch::SimpleIonChannel)
     if ~isnothing(ch.m.Vhalf)
         ch.m.infty = (V) -> (1 - ch.m.zeta) / (1 + exp((ch.m.Vhalf - V) / ch.m.k)) + ch.m.zeta
     end
-    
+
     if ~isnothing(ch.m.Cbase)
         ch.m.tau = (V) -> ch.m.Cbase + ch.m.Camp * exp(- ((ch.m.Vmax - V) / ch.m.sigma)^2)
     end
-    
+
     if ~isnothing(ch.h.Vhalf)
         ch.h.infty = (V) -> (1 - ch.h.zeta) / (1 + exp(-(ch.h.Vhalf - V) / ch.h.k)) + ch.h.zeta
     end
-    
+
     if ~isnothing(ch.h.Cbase)
         ch.h.tau = (V) -> ch.h.Cbase + ch.h.Camp * exp(- ((ch.h.Vmax - V) / ch.h.sigma)^2)
     end
-    
+
     ch
 end
 
@@ -150,8 +150,8 @@ $$\dot{m} = \frac{m_\infty(V) - m}{\tau_m(V)}$$
 $$\dot{h} = \frac{h_\infty(V) - h}{\tau_h(V)}$$
 """
 function step(ch::SimpleIonChannel; V::Real, m::Real, h::Real, E::Real)
-    i = ch.g * (V - E) 
-    
+    i = ch.g * (V - E)
+
     if ch.m._type == :evolving
         i = i * m ^ ch.a
         dm = (ch.m.infty(V) - m) / ch.m.tau(V)
@@ -161,7 +161,7 @@ function step(ch::SimpleIonChannel; V::Real, m::Real, h::Real, E::Real)
     else
         dm = nothing
     end
-    
+
     if ch.h._type == :evolving
         i = i * h ^ ch.b
         dm = (ch.h.infty(V) - h) / ch.h.tau(V)
@@ -171,7 +171,7 @@ function step(ch::SimpleIonChannel; V::Real, m::Real, h::Real, E::Real)
     else
         dh = nothing
     end
-    
+
     return (i, dm, dh)
 end
 
@@ -210,17 +210,17 @@ return an anonymous function that can be used by DifferentialEquations.jl.
 function simpleConductanceModel(channels::Vector{SimpleIonChannel}, stim::Function)
     nchannel = length(channels)
     nvar = dof(channels)
-    
+
     return (du, u, p, t) -> begin
         v = u[1]
         param = u[2:end-1]
         var_idx = 1
         dvar_idx = 1
-        
+
         _current = zeros(nchannel)
         for (idx, item) in enumerate(channels)
             (_m, _h) = dof(item)
-            
+
             # retrive activation or inactivation variable
             if _m == 1
                 _m_val = param[var_idx]
@@ -228,33 +228,33 @@ function simpleConductanceModel(channels::Vector{SimpleIonChannel}, stim::Functi
             else
                 _m_val = 1
             end
-            
+
             if _h == 1
                 _h_val = param[var_idx]
                 var_idx = var_idx + 1
             else
                 _h_val = 1
             end
-            
+
             # step update
             (_item_i, _item_dm, _item_dh) = step(item, V=v, m=_m_val, h=_h_val, E=p.E[item.ion])
             _current[idx] = _item_i
-            
+
             # udpate du value for activation or inactivation variable
             if _m == 1
                 du[1 + dvar_idx] = _item_dm
                 dvar_idx = dvar_idx + 1
             end
-            
+
             if _h == 1
                 du[1 + dvar_idx] = _item_dh
                 dvar_idx = dvar_idx + 1
             end
         end
-        
+
         # udpate dV and current input
-        du[1] = stim(t) - sum(_current)
-        u[end] = stim(t)
+        du[1] = stim(t, p.stim) - sum(_current)
+        u[end] = stim(t, p.stim)
         du
     end
 end
