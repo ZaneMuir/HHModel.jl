@@ -71,6 +71,7 @@ end
 @doc raw"""
 ## hh potassium channel
 
+$$i_{\text{K}} = g_{\text{K}} a ^ 4 b c (V - E_{\text{K}})$$
 """
 function hh_potassium(g::Real)
     #TODO
@@ -78,12 +79,22 @@ end
 
 @doc raw"""
 ## Ih current
-$$i_{\text{h}} = g_{\text{h}} r^3 (V - E_{\text{h}})$$
+$$i_{\text{h}} = g_{\text{h}} r (V - E_{\text{h}})$$
 
 - modified from `inf_tau_r_rm.m` and `I_h_rm.m`
 """
 function ihcurrent(g::Real)
-    # TODO
+    a=83;
+    b = 7.6;
+    c = 0.0002;
+    d = 5.3;
+    e=313;
+    _r_tau = (V) -> (1/c) * 1/(exp(-(V+a)/b) + exp((V+a)/d))+e;
+    _r = Kinetics(-100.0, 7.0, 0, _tau=_r_tau, state=:inactivation)
+    
+    SimpleIonChannel("ih current", :ih, 
+        g, 0, 1,
+        Kinetics(), _r)
 end
 
 @doc raw"""
@@ -91,5 +102,7 @@ end
 $$i_{\text{leak}} = g_{\text{leak}} (V - E_{\text{leak}})$$
 """
 function leakage(g::Real)
-    #TODO
+    SimpleIonChannel("leakage", :leak, 
+        g, 0, 0,
+        Kinetics(), Kinetics())
 end
