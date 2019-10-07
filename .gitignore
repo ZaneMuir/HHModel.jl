@@ -4,5 +4,6 @@
 deps/deps.jl
 
 .ipynb_checkpoints/
+export/
 .DS_Store
 
