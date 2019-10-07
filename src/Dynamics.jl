@@ -139,7 +139,7 @@ function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) 
             _var_step = sum(HHModel.dof(item))
             (_icurrent, _iderivitate) = HHModel.step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
             _current[idx] = _icurrent
-            du[var_idx:var_idx-1+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
+            du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
             var_idx += _var_step
         end
         
