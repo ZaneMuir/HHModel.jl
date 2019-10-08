@@ -14,10 +14,14 @@ mutable struct ComplexIonChannel <: AbstractIonChannel
 end
 
 function dof(channel::ComplexIonChannel)
-    _ans = 0
+    _ans = zeros(Int, 4)
+    _idx = 0
     for item in channel.var
         for each in item
-            _ans += each._type == :evolving ? 1 : 0
+            _idx += 1
+            if each._type == :evolving
+                _ans[_idx] = 1
+            end
         end
     end
     _ans
@@ -82,4 +86,28 @@ function itr_kinetics(ch::ComplexIonChannel)
         _ans[idx*2] = item[2]
     end
     _ans
+end
+
+function current(ch::ComplexIonChannel; V::Vector{T}, var::Array{T, 2}, E::T) where {T <: Real}
+    _var_idx = 1
+    _kinetics = zeros(size(V))
+    
+    for (idx, item) in enumerate(ch.var)
+        _tmp = ones(size(V))
+        for each in item
+            if each._type == :evolving
+                _var_item = var[_var_idx, :]
+                _tmp .*= _var_item .^ each.n
+                _var_idx += 1
+            elseif each._type == :instantaneous
+                _tmp .*= each.infty.(V) .^ each.n
+            else
+                nothing
+            end
+        end
+        _kinetics .+= ch.weights[idx] .* _tmp
+    end
+    
+    current = ch.g .* _kinetics .* (V .- E)
+    current
 end

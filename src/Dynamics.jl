@@ -166,6 +166,18 @@ function setup_init(channels::Vector{T}, v0::Real) where {T<:AbstractIonChannel}
     _init_val
 end
 
+function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepRangeLen, param::NamedTuple) where {T<:AbstractIonChannel}
+    var = hcat(solution(tspan).u...)
+    var_idx = 2
+    result = Dict{String, Vector{Float64}}()
+    for ch in model
+        _var_step = sum(dof(ch))
+        result[ch.name] = current(ch, V=var[1, :], var=var[var_idx:var_idx-1+_var_step, :], E=param.E[ch.ion])
+    end
+    result["voltage"] = var[1, :]
+    result
+end
+
 #function run()
 
 # end #module
