@@ -3,6 +3,13 @@
 
 conductance based neuronal modeling.
 
+## demos
+![](./doc/demo.svg)
+
+![](./doc/demo2.svg)
+
+![](./doc/demo2_current.svg)
+
 ## deps
 - [DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl)
 
