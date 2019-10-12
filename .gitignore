@@ -7,3 +7,4 @@ deps/deps.jl
 export/
 .DS_Store
 
+docs/
