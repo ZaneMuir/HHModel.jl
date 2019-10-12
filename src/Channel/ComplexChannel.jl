@@ -14,7 +14,7 @@ mutable struct ComplexIonChannel <: AbstractIonChannel
 end
 
 function dof(channel::ComplexIonChannel)
-    _ans = zeros(Int, 4)
+    _ans = zeros(Int, length(channel.var)*2)
     _idx = 0
     for item in channel.var
         for each in item
