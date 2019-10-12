@@ -1,5 +1,6 @@
 # module Dynamics
-abstract type AbstractIonChannel end
+abstract type AbstractIonChannel end #TODO: generalize simpel and complex channel into generic channels.
+abstract type AbstractKinetics end #TODO: extend to more kinetic parameters
 
 @doc raw"""
 ## Kinetics of an ion channel variable
@@ -30,7 +31,7 @@ $$\tau(V) = C_{\text{base}} + C_{\text{amp}} \exp(\frac{- (V_{\text{max}} - V) ^
 ### Kinetics()
 - returns an empty kinetic object
 """
-mutable struct Kinetics
+mutable struct Kinetics <: AbstractKinetics
     _type::Symbol # :evolving, :intantaneous, :empty
     _state::Symbol # :activation, :inactivation, :custom
     n::Integer
@@ -117,7 +118,7 @@ function dof(channels::Vector{T}) where {T <: AbstractIonChannel}
 end
 
 @doc raw"""
-simple conductance model:
+simple conductance model, current clamp:
 
 $$C\frac{dV}{dt} = I_{\text{stimulus}} - (\sum_i I_i) $$
 
@@ -126,7 +127,7 @@ return an anonymous function that can be used by DifferentialEquations.jl.
 """
 function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
     nchannel = length(channels)
-    nvar = HHModel.dof(channels)
+    nvar = dof(channels)
     
     return (du, u, p, t) -> begin
         not = (x) -> !x
@@ -136,8 +137,8 @@ function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) 
         
         _current = zeros(nchannel)
         for (idx, item) in enumerate(channels)
-            _var_step = sum(HHModel.dof(item))
-            (_icurrent, _iderivitate) = HHModel.step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
+            _var_step = sum(dof(item))
+            (_icurrent, _iderivitate) = step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
             _current[idx] = _icurrent
             du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
             var_idx += _var_step
@@ -176,6 +177,40 @@ function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepR
     end
     result["voltage"] = var[1, :]
     result
+end
+
+# voltage clamp
+@doc raw"""
+simple conductance model, simple voltage clamp:
+
+$$I_{\text{stimulus}} = (\sum_i I_i) $$
+
+return an anonymous function that can be used by DifferentialEquations.jl.
+"""
+function simpleVoltageClamp(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
+    nchannel = length(channels)
+    nvar = dof(channels)
+    
+    return (du, u, p, t) -> begin
+        not = (x) -> !x
+        v = stim(t, p.stim)
+        param = u[2:end-1]
+        var_idx = 1
+        
+        _current = zeros(nchannel)
+        for (idx, item) in enumerate(channels)
+            _var_step = sum(dof(item))
+            (_icurrent, _iderivitate) = step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
+            _current[idx] = _icurrent
+            du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
+            var_idx += _var_step
+        end
+        
+        u[end] = sum(_current)
+        u[1] = v
+        
+        du, u, p, t
+    end
 end
 
 #function run()

@@ -4,7 +4,7 @@ conductance based channel, generic format
 $$i = g\cdot \text{krule}(\text{var}) \cdot (V - E)$$
 
 """
-mutable struct GenericIonChannel <: AbstractIonChannel
+mutable struct GenericIonChannel <: AbstractIonChannel #TODO: optimize the structure for better and easier use.
     name::String
     ion::Symbol
     g::Real
@@ -14,9 +14,11 @@ mutable struct GenericIonChannel <: AbstractIonChannel
 end
 
 function dof(ch::GenericIonChannel)
-    _ans = []
-    for item in ch.kvars
-        _ans = [_ans, item._type == :evolving ? 1 : 0]
+    _ans = zeros(Int, length(ch.kvars))
+    for (idx, item) in enumerate(ch.kvars)
+        if item._type == :evolving
+            _ans[idx] = 1
+        end
     end
     _ans
 end
