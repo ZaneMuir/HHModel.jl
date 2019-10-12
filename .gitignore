@@ -8,3 +8,4 @@ export/
 .DS_Store
 
 docs/
+.vscode/
