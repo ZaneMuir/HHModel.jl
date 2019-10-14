@@ -1,2 +1,2 @@
 # jupyter notebook
-*.ipynb text
+*.ipynb linguist-language=Julia
