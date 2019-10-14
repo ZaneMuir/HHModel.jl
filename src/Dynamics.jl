@@ -161,6 +161,7 @@ function setup_init(channels::Vector{T}, v0::Real) where {T<:AbstractIonChannel}
         for each in itr_kinetics(item)
             if each._type == :evolving
                 _init_val[var_idx] = each.infty(v0)
+                var_idx += 1
             end
         end
     end
