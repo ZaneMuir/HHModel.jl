@@ -86,3 +86,31 @@ end
 function itr_kinetics(ch::SimpleIonChannel)
     [ch.m, ch.h]
 end
+
+function current(ch::SimpleIonChannel; V::Vector{T}, var::Array{T, 2}, E::T) where {T <: Real}
+    _var_idx = 1
+    i = ch.g .* (V .- E)
+
+    if ch.m._type == :evolving
+        m = var[_var_idx, :]
+        _var_idx += 1
+        
+        i = i .* m .^ ch.m.n
+    elseif ch.m._type == :instantaneous
+        i = i .* ch.m.infty.(V) .^ ch.m.n
+    else
+        nothing
+    end
+
+    if ch.h._type == :evolving
+        h = var[_var_idx, :]
+        
+        i = i .* h .^ ch.h.n
+    elseif ch.h._type == :instantaneous
+        i = i .* ch.h.infty.(V) .^ ch.h.n
+    else
+        nothing
+    end
+
+    return i
+end

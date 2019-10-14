@@ -4,7 +4,7 @@ conductance based channel, generic format
 $$i = g\cdot \text{krule}(\text{var}) \cdot (V - E)$$
 
 """
-mutable struct GenericIonChannel <: AbstractIonChannel
+mutable struct GenericIonChannel <: AbstractIonChannel #TODO: optimize the structure for better and easier use.
     name::String
     ion::Symbol
     g::Real
@@ -14,9 +14,11 @@ mutable struct GenericIonChannel <: AbstractIonChannel
 end
 
 function dof(ch::GenericIonChannel)
-    _ans = 0
-    for item in ch.kvars
-        _ans += item._type == :evolving ? 1 : 0
+    _ans = zeros(Int, length(ch.kvars))
+    for (idx, item) in enumerate(ch.kvars)
+        if item._type == :evolving
+            _ans[idx] = 1
+        end
     end
     _ans
 end
@@ -59,4 +61,13 @@ end
 
 function itr_kinetics(ch::GenericIonChannel)
     ch.kvars
+end
+
+#NOTE: not tested
+function current(ch::GenericIonChannel; V::Vector{T}, var::Array{T, 2}, E::T) where {T<:Real}
+    _var_idx = 1
+    _krule = (var_item) -> ch.krule(ch.kvars, var_item)
+    _var_reform = [Tuple(var[:, idx]) for idx =1:size(var, 2)]
+    current = ch.g .* _krule.(_var_reform) .* (V .- E)
+    return current
 end
