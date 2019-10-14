@@ -13,12 +13,15 @@ conductance based neuronal modeling.
 - documentation and workflow
 - make playground files more readable.
 - complex ltk channel
-- calculate current of each channel during current clamp
 - post-synaptic potential/current simulation
-- voltage clamp
 - model struct and wrap simulation into one method.
 
 ## change logs
+
+#### 10/11/2019
+- voltage clamp mode
+- calculate current of each channel during current clamp
+
 #### 10/07/2019
 - basic framework
     - Kinetics
