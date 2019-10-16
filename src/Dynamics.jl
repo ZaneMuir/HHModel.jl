@@ -175,6 +175,7 @@ function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepR
     for ch in model
         _var_step = sum(dof(ch))
         result[ch.name] = current(ch, V=var[1, :], var=var[var_idx:var_idx-1+_var_step, :], E=param.E[ch.ion])
+        var_idx += _var_step
     end
     result["voltage"] = var[1, :]
     result
