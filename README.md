@@ -11,12 +11,18 @@ conductance based neuronal modeling.
 
 ## TODO list
 - documentation and workflow
-- make playground files more readable.
 - complex ltk channel
 - post-synaptic potential/current simulation
 - model struct and wrap simulation into one method.
 
 ## change logs
+
+#### 10/15/2019
+- make playground files more readable.
+- verification with Maltab codes
+- bug fix:
+    - currents of channels
+    - initial values
 
 #### 10/11/2019
 - voltage clamp mode
