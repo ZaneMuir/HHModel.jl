@@ -35,7 +35,7 @@ mutable struct Kinetics <: AbstractKinetics
     _type::Symbol # :evolving, :intantaneous, :empty
     _state::Symbol # :activation, :inactivation, :custom
     n::Integer
-    
+
     Vhalf::Union{Nothing, Real}
     k::Union{Nothing, Real}
     zeta::Union{Nothing, Real}
@@ -128,13 +128,13 @@ return an anonymous function that can be used by DifferentialEquations.jl.
 function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
     nchannel = length(channels)
     nvar = dof(channels)
-    
+
     return (du, u, p, t) -> begin
         not = (x) -> !x
         v = u[1]
         param = u[2:end-1]
         var_idx = 1
-        
+
         _current = zeros(nchannel)
         for (idx, item) in enumerate(channels)
             _var_step = sum(dof(item))
@@ -143,11 +143,11 @@ function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) 
             du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
             var_idx += _var_step
         end
-        
+
         I = stim(t, p.stim)
         du[1] = (I - sum(_current)) / C
         u[end] = I
-        
+
         du, u, p, t
     end
 end
@@ -156,7 +156,7 @@ function setup_init(channels::Vector{T}, v0::Real) where {T<:AbstractIonChannel}
     _init_val = zeros(dof(channels)+2)
     _init_val[1] = v0
     var_idx = 2
-    
+
     for (idx, item) in enumerate(channels)
         for each in itr_kinetics(item)
             if each._type == :evolving
@@ -192,13 +192,13 @@ return an anonymous function that can be used by DifferentialEquations.jl.
 function simpleVoltageClamp(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
     nchannel = length(channels)
     nvar = dof(channels)
-    
+
     return (du, u, p, t) -> begin
         not = (x) -> !x
         v = stim(t, p.stim)
         param = u[2:end-1]
         var_idx = 1
-        
+
         _current = zeros(nchannel)
         for (idx, item) in enumerate(channels)
             _var_step = sum(dof(item))
@@ -207,10 +207,10 @@ function simpleVoltageClamp(channels::Vector{T}, stim::Function; C::Real=1) wher
             du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
             var_idx += _var_step
         end
-        
+
         u[end] = sum(_current)
         u[1] = v
-        
+
         du, u, p, t
     end
 end

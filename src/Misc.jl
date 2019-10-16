@@ -7,7 +7,7 @@ function detect_cross_pnt(arr, thr, way=:up, gap=1)
     catch BoundError
         return nothing
     end
-    
+
     if way == :up
         _check = (x, i) -> x[i-1] < thr < x[i] #< x[i+1]
     elseif way == :down
@@ -15,17 +15,17 @@ function detect_cross_pnt(arr, thr, way=:up, gap=1)
     else
         return nothing
     end
-    
+
     sort!(_idx_repo)
     _result = Vector{Int}()
     _previous = -9999
-    
+
     for idx in _idx_repo
             if _check(arr, idx) && (idx - _previous > gap)
                 _result = [_result; idx]
                 _previous = idx
             end
     end
-    
+
     _result
 end

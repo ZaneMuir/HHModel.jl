@@ -8,7 +8,7 @@ mutable struct GenericIonChannel <: AbstractIonChannel #TODO: optimize the struc
     name::String
     ion::Symbol
     g::Real
-    
+
     krule::Function
     kvars::Vector{Kinetics}
 end
@@ -45,7 +45,7 @@ end
 function step(ch::GenericIonChannel; V::Real, var::Vector{T}, E::Real) where {T<:Real}
     _var_idx = 1
     derivative = zeros(size(var))
-    
+
     current = ch.g * ch.krule(ch.kvars, var) * (V - E)
     for item in ch.kvars
         if item._type == :evolving
@@ -55,7 +55,7 @@ function step(ch::GenericIonChannel; V::Real, var::Vector{T}, E::Real) where {T<
             nothing
         end
     end
-    
+
     return (current, derivative)
 end
 

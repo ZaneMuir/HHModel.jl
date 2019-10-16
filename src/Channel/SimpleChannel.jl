@@ -20,7 +20,7 @@ mutable struct SimpleIonChannel <: AbstractIonChannel
     name::String
     ion::Symbol
     g::Real
-    
+
     m::Kinetics
     h::Kinetics
 end
@@ -58,7 +58,7 @@ function step(ch::SimpleIonChannel; V::Real, var::Vector{T}, E::Real) where {T <
     if ch.m._type == :evolving
         m = var[_var_idx]
         _var_idx += 1
-        
+
         i = i * m ^ ch.m.n
         dm = (ch.m.infty(V) - m) / ch.m.tau(V)
     elseif ch.m._type == :instantaneous
@@ -70,7 +70,7 @@ function step(ch::SimpleIonChannel; V::Real, var::Vector{T}, E::Real) where {T <
 
     if ch.h._type == :evolving
         h = var[_var_idx]
-        
+
         i = i * h ^ ch.h.n
         dh = (ch.h.infty(V) - h) / ch.h.tau(V)
     elseif ch.h._type == :instantaneous
@@ -94,7 +94,7 @@ function current(ch::SimpleIonChannel; V::Vector{T}, var::Array{T, 2}, E::T) whe
     if ch.m._type == :evolving
         m = var[_var_idx, :]
         _var_idx += 1
-        
+
         i = i .* m .^ ch.m.n
     elseif ch.m._type == :instantaneous
         i = i .* ch.m.infty.(V) .^ ch.m.n
@@ -104,7 +104,7 @@ function current(ch::SimpleIonChannel; V::Vector{T}, var::Array{T, 2}, E::T) whe
 
     if ch.h._type == :evolving
         h = var[_var_idx, :]
-        
+
         i = i .* h .^ ch.h.n
     elseif ch.h._type == :instantaneous
         i = i .* ch.h.infty.(V) .^ ch.h.n

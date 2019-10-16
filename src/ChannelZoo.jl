@@ -11,31 +11,31 @@ $$i_{\text{ltk}} = g_{\text{ltk}} w^4 z (V - E_{\text{K}})$$
 
 <!-- TODO: ### complex version -->
 
-- modified from `inf_tau_w_ltk_rm.m`, `inf_tau_z_ltk_rm.m` and `I_ltk_rm.m` 
+- modified from `inf_tau_w_ltk_rm.m`, `inf_tau_z_ltk_rm.m` and `I_ltk_rm.m`
 """
 function low_voltage_gated_potassium(g::Real; iltkcomplex=false, subtype=:kv1)
     _param = (
-        kv1 =   (0.5, 1000), 
+        kv1 =   (0.5, 1000),
         ikcnq = (1.0, 10000),
         ia =    (0.0, 10)
     )
     _zeta, _camp = _param[subtype]
-    
+
     if iltkcomplex
         #TODO
-        return SimpleIonChannel("ltk_cmplx", :potassium, 
+        return SimpleIonChannel("ltk_cmplx", :potassium,
             g, 0, 0,
             Kinetics(), Kinetics())
     else
         # Change back to 100 for kv1 like
-        _w_tau = (V) -> 100*(6*exp((V+60)/6)+16*exp(-(V+60)/45))^(-1)+1.5 # IKL 
+        _w_tau = (V) -> 100*(6*exp((V+60)/6)+16*exp(-(V+60)/45))^(-1)+1.5 # IKL
         _w_infty = (V) -> (1+exp(-(V+44.5)/8.4))^(-1/4)
         _w = Kinetics(4, _w_infty, _w_tau)
-        
+
         _z_tau = (V) -> _camp*(exp((V+60)/20)+exp(-(V+60)/8))^(-1)+50;
         _z = Kinetics(1, -71.0, 10.0, zeta=_zeta, _tau=_z_tau, state=:inactivation)
 
-        return SimpleIonChannel("ltk", :potassium, 
+        return SimpleIonChannel("ltk", :potassium,
             g, _w, _z)
     end
 end
@@ -54,7 +54,7 @@ function high_voltage_gated_potassium(g::Real; phi=0.85)
 
     ComplexIonChannel("htk", :potassium,
            g, [phi, 1-phi],
-           [(_n, Kinetics()), 
+           [(_n, Kinetics()),
             (_p, Kinetics())]
     )
 end
@@ -69,11 +69,11 @@ $$i_{\text{Na}} = g_{\text{Na}} m^3 h (V - E_{\text{Na}})$$
 function hh_sodium(g::Real)
     _m_tau = (V) -> 10 / (5*exp((V+60)/18)+36*exp(-(V+60)/25))+0.04
     _m = Kinetics(3, -38.0, 7.0, _tau = _m_tau)
-    
+
     _h_tau = (V) -> 100 / (7*exp((V+60)/11)+10*exp(-(V+60)/25))+0.6
     _h = Kinetics(1, -65.0, 6.0, _tau=_h_tau, state=:inactivation)
-    
-    SimpleIonChannel("ina", :sodium, 
+
+    SimpleIonChannel("ina", :sodium,
         g, _m, _h)
 end
 
@@ -121,8 +121,8 @@ function ihcurrent(g::Real)
     # _r_tau = (V) -> (1/c) * 1/(exp(-(V+a)/b) + exp((V+a)/d))+e;
     _r_tau = (V) -> ((1/c)*1/(exp(-(V+a)/b)) + (exp((V+a)/d)))+e;
     _r = Kinetics(1, -96.11, 8.1, _tau=_r_tau, state=:inactivation)
-    
-    SimpleIonChannel("ih", :ih, 
+
+    SimpleIonChannel("ih", :ih,
         g, Kinetics(), _r)
 end
 
@@ -131,6 +131,6 @@ end
 $$i_{\text{leak}} = g_{\text{leak}} (V - E_{\text{leak}})$$
 """
 function leakage(g::Real)
-    SimpleIonChannel("leakage", :leak, 
+    SimpleIonChannel("leakage", :leak,
         g, Kinetics(), Kinetics())
 end
