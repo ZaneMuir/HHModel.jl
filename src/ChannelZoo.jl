@@ -53,7 +53,7 @@ function high_voltage_gated_potassium(g::Real; phi=0.85)
     _p = Kinetics(1, -23, 6, _tau=_p_tau)
 
     ComplexIonChannel("htk", :potassium,
-           g, [0.85, 0.15],
+           g, [phi, 1-phi],
            [(_n, Kinetics()), 
             (_p, Kinetics())]
     )
