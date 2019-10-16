@@ -47,15 +47,15 @@ end
 function high_voltage_gated_potassium(g::Real; phi=0.85)
     _n_tau = (V) -> 100*(11*exp((V+60)/24)+21*exp(-(V+60)/23))^(-1)+0.7;
     _n_infty = (V) -> (1+exp(-(V+15)/5))^(-1/2)
-    _n = HHModel.Kinetics(2, _n_infty, _n_tau)
+    _n = Kinetics(2, _n_infty, _n_tau)
 
     _p_tau = (V) -> 100*(4*exp((V+60)/32)+5*exp(-(V+60)/22))^(-1)+5;
-    _p = HHModel.Kinetics(1, -23, 6, _tau=_p_tau)
+    _p = Kinetics(1, -23, 6, _tau=_p_tau)
 
-    HHModel.ComplexIonChannel("htk", :potassium,
+    ComplexIonChannel("htk", :potassium,
            g, [0.85, 0.15],
-           [(_n, HHModel.Kinetics()), 
-            (_p, HHModel.Kinetics())]
+           [(_n, Kinetics()), 
+            (_p, Kinetics())]
     )
 end
 
@@ -90,17 +90,17 @@ function hh_potassium(g::Real)
 
     _a_tau = (V) -> 100*(7*exp((V+60)/14)+29*exp(-(V+60)/24))^(-1)+0.1
     _a_infty = (V) -> (1+exp(-(V+31)/6))^(-1/4)
-    _a = HHModel.Kinetics(4, _a_infty, _a_tau)
+    _a = Kinetics(4, _a_infty, _a_tau)
 
     _b_tau = (V) -> 1000*(14*exp((V+60)/27)+29*exp(-(V+60)/24))^(-1)+1;
     _b_infty = (V) -> (1+exp((V+66)/7))^(-1/2);
-    _b = HHModel.Kinetics(1, _b_infty, _b_tau)
+    _b = Kinetics(1, _b_infty, _b_tau)
 
     _c_tau = (V) -> 90*(1+exp(-(V+66)/17))^(-1)+10;
     _c_infty = (V) -> (1+exp((V+66)/7))^(-1/2);
-    _c = HHModel.Kinetics(1, _c_infty, _c_tau)
+    _c = Kinetics(1, _c_infty, _c_tau)
 
-    HHModel.GenericIonChannel("ik", :potassium,
+    GenericIonChannel("ik", :potassium,
         g, ik_rule,
         [_a, _b, _c]
     );
