@@ -171,14 +171,15 @@ end
 function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepRangeLen, param::NamedTuple) where {T<:AbstractIonChannel}
     var = hcat(solution(tspan).u...)
     var_idx = 2
-    result = Dict{String, Vector{Float64}}()
-    for ch in model
+    _result = Vector{Vector{Float64}}(undef, length(model))
+    _name = Vector{Symbol}(undef, length(model))
+    for (idx, ch) in enumerate(model)
         _var_step = sum(dof(ch))
-        result[ch.name] = current(ch, V=var[1, :], var=var[var_idx:var_idx-1+_var_step, :], E=param.E[ch.ion])
+        _result[idx] = current(ch, V=var[1, :], var=var[var_idx:var_idx-1+_var_step, :], E=param.E[ch.ion])
+        _name[idx] = Symbol(ch.name)
         var_idx += _var_step
     end
-    result["voltage"] = var[1, :]
-    result
+    NamedTuple{Tuple(_name)}(_result)
 end
 
 # voltage clamp
