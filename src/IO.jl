@@ -41,14 +41,15 @@ function export_as_mat(filename, tspan, currents, voltages)
     true
 end
 
-function export_as_hdf5(filename, tspan, currents, voltages; _mode="VC")
+function export_as_hdf5(filename, tspan, currents, voltages; _mode="VC", _note="")
     _frequency = Int(div(1000, (tspan[2] - tspan[1])))
     h5open(_check_filename(filename, ".h5"), "w") do hfile
         _g_meta = g_create(hfile, "meta")
         _g_meta["_type"] = "SweepBasedData"
         _g_meta["_origin_format"] = "HHModel simulation"
         _g_meta["date"] = Dates.format(Dates.now(), "yyyy_mm_dd")
-        _g_meta["mode"] = 
+        _g_meta["mode"] = _mode
+        _g_meta["note"] = _note
 
         hfile["frequency"] = _frequency
         hfile["current", "compress", 6] = currents
