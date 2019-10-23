@@ -3,11 +3,12 @@
 
 conductance based neuronal modeling.
 
+
 ## demos
 ![SingleCompartmentDemo](./playground/SingleCompartmentDemo.ipynb)
 
-## deps
-- [DifferentialEquations.jl](https://github.com/JuliaDiffEq/DifferentialEquations.jl)
+## references
+- [Hight, A. E. & Kalluri, R. A biophysical model examining the role of low-voltage-activated potassium currents in shaping the responses of vestibular ganglion neurons. J. Neurophysiol. 116, 503–521 (2016).](https://doi.org/10.1152/jn.00107.2016)
 
 ## TODO list
 - documentation and workflow
