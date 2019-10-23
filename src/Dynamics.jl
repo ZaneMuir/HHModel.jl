@@ -125,7 +125,7 @@ $$C\frac{dV}{dt} = I_{\text{stimulus}} - (\sum_i I_i) $$
 using SimpleIonChannels to model a cell;
 return an anonymous function that can be used by DifferentialEquations.jl.
 """
-function simpleConductanceModel(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
+function CurrentClampSimulation(channels::Vector{T}, stim::Function; C::Real=1) where {T <: AbstractIonChannel}
     nchannel = length(channels)
     nvar = dof(channels)
 
@@ -202,9 +202,9 @@ function simpleVoltageClamp(channels::Vector{T}, stim::Function; C::Real=1) wher
         _current = zeros(nchannel)
         for (idx, item) in enumerate(channels)
             _var_step = sum(dof(item))
-            (_icurrent, _iderivitate) = step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
+            (_icurrent, _iderivative) = step(item, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[item.ion])
             _current[idx] = _icurrent
-            du[1+var_idx:var_idx+_var_step] = _iderivitate[not.(isnothing.(_iderivitate))]
+            du[1+var_idx:var_idx+_var_step] = _iderivative[not.(isnothing.(_iderivative))]
             var_idx += _var_step
         end
 
@@ -212,6 +212,37 @@ function simpleVoltageClamp(channels::Vector{T}, stim::Function; C::Real=1) wher
         u[1] = v
 
         du, u, p, t
+    end
+end
+
+function VoltageClampSimulation(channels::Vector{T}, stim::Function; C::Real=1, Rs=nothing) where {T <: AbstractIonChannel}
+    nchannel = length(channels)
+    nvar = dof(channels)
+    
+    if isnothing(Rs)
+        return simpleVoltageClamp(channels, stim; C=C)
+    else
+        return (du, u, p, t) -> begin
+            not = (x) -> !x
+            E = stim(t, p.stim)
+            v = u[1]
+            param = u[2:end-1]
+            var_idx = 1
+            _current = zeros(nchannel)
+
+            for (idx, ch) in enumerate(channels)
+                _var_step = sum(dof(ch))
+                (_icurrent, _iderivative) = step(ch, V=v, var=param[var_idx:var_idx-1+_var_step], E=p.E[ch.ion])
+                _current[idx] = _icurrent
+                du[1+var_idx:var_idx+_var_step] = _iderivative[not.(isnothing.(_iderivative))]
+                var_idx += _var_step
+            end
+
+            u[end] = sum(_current)
+            du[1] = (E-v)/(Rs*C) - sum(_current)/C
+            
+            du, u, p, t
+        end
     end
 end
 
