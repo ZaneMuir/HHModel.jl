@@ -11,7 +11,8 @@ $$i_{\text{ltk}} = g_{\text{ltk}} w^4 z (V - E_{\text{K}})$$
 
 <!-- TODO: ### complex version -->
 
-- modified from `inf_tau_w_ltk_rm.m`, `inf_tau_z_ltk_rm.m` and `I_ltk_rm.m`
+#### ref
+- Hight and Kalluri, 2016
 """
 function low_voltage_gated_potassium(g::Real; iltkcomplex=false, subtype=:kv1)
     _param = (
@@ -43,6 +44,8 @@ end
 @doc raw"""
 ## high voltage gated potassium channel
 
+#### ref
+- Hight and Kalluri, 2016
 """
 function high_voltage_gated_potassium(g::Real; phi=0.85)
     _n_tau = (V) -> 100*(11*exp((V+60)/24)+21*exp(-(V+60)/23))^(-1)+0.7;
@@ -65,6 +68,9 @@ end
 $$i_{\text{Na}} = g_{\text{Na}} m^3 h (V - E_{\text{Na}})$$
 
 - modified from `inf_tau_m_rm.m`, `inf_tau_h_rm.m` and `I_na_rm.m`
+
+#### ref
+- Hight and Kalluri, 2016
 """
 function hh_sodium(g::Real)
     _m_tau = (V) -> 10 / (5*exp((V+60)/18)+36*exp(-(V+60)/25))+0.04
@@ -81,6 +87,9 @@ end
 ## hh potassium channel
 
 $$i_{\text{K}} = g_{\text{K}} a ^ 4 b c (V - E_{\text{K}})$$
+
+#### ref
+- Hight and Kalluri, 2016
 """
 function hh_potassium(g::Real)
     ik_rule = (knt, var) -> begin
@@ -110,17 +119,24 @@ end
 ## Ih current
 $$i_{\text{h}} = g_{\text{h}} r (V - E_{\text{h}})$$
 
-- modified from `inf_tau_r_rm.m` and `I_h_rm.m`
+#### ref
+- Hight and Kalluri, 2016
+- for different activation level: Kalluri's Lab
 """
-function ihcurrent(g::Real)
-    a = 86.86183;
-     b = 5.76769;
-     c = 3393.34171;
-     d = 6.67393;
-     e = 295.95798;
+function ihcurrent(g::Real; level=1)
+    _activation_level = Dict(
+        1 => (86.86183, 5.76769, 3393.34171, 6.67393, 295.95798, -96.11, 8.1),
+        2 => (85.3077,6.34179,3183.003,8.72304,274.3381,-91.67525,8.2),
+        3 => (83.75372,6.34179,2972.664705,10.77215,252.71829,-89.2405,8.3),
+        4 => (83.23572,6.437473,2902.551813,11.456875,246.67834,-88.428416,8.35),
+        5 => (82.71772,6.533156,2832.43892,12.1416,240.63839,-87.6163,8.40),
+        6 => (82.19972,6.62884,2762.32603,12.826325,234.598445,-86.80425,8.45),
+        7 => (80.64572,6.91589,2551.9877,14.8805,209.4786,-84.368,8.6),
+    )
+    a,b,c,d,e,_vhalf,_k = _activation_level[level]
     # _r_tau = (V) -> (1/c) * 1/(exp(-(V+a)/b) + exp((V+a)/d))+e;
     _r_tau = (V) -> ((1/c)*1/(exp(-(V+a)/b)) + (exp((V+a)/d)))+e;
-    _r = Kinetics(1, -96.11, 8.1, _tau=_r_tau, state=:inactivation)
+    _r = Kinetics(1, _vhalf, _k, _tau=_r_tau, state=:inactivation)
 
     SimpleIonChannel("ih", :ih,
         g, Kinetics(), _r)
@@ -129,6 +145,7 @@ end
 @doc raw"""
 ## leakage current
 $$i_{\text{leak}} = g_{\text{leak}} (V - E_{\text{leak}})$$
+
 """
 function leakage(g::Real)
     SimpleIonChannel("leakage", :leak,
