@@ -24,7 +24,7 @@ function low_voltage_gated_potassium(g::Real; iltkcomplex=false, subtype=:kv1)
 
     if iltkcomplex
         #TODO
-        return SimpleIonChannel("ltk_cmplx", :potassium,
+        return SimpleIonChannel("ikl", :potassium,
             g, 0, 0,
             Kinetics(), Kinetics())
     else
@@ -36,7 +36,7 @@ function low_voltage_gated_potassium(g::Real; iltkcomplex=false, subtype=:kv1)
         _z_tau = (V) -> _camp*(exp((V+60)/20)+exp(-(V+60)/8))^(-1)+50;
         _z = Kinetics(1, -71.0, 10.0, zeta=_zeta, _tau=_z_tau, state=:inactivation)
 
-        return SimpleIonChannel("ltk", :potassium,
+        return SimpleIonChannel("ikl", :potassium,
             g, _w, _z)
     end
 end
@@ -55,7 +55,7 @@ function high_voltage_gated_potassium(g::Real; phi=0.85)
     _p_tau = (V) -> 100*(4*exp((V+60)/32)+5*exp(-(V+60)/22))^(-1)+5;
     _p = Kinetics(1, -23, 6, _tau=_p_tau)
 
-    ComplexIonChannel("htk", :potassium,
+    ComplexIonChannel("ikh", :potassium,
            g, [phi, 1-phi],
            [(_n, Kinetics()),
             (_p, Kinetics())]
