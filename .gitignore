@@ -9,3 +9,7 @@ export/
 
 docs/
 .vscode/
+
+*.svg
+*.h5
+*.pdf
