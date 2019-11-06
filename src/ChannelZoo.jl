@@ -43,6 +43,7 @@ end
 
 @doc raw"""
 ## high voltage gated potassium channel
+$$i_{\text{kh}} = g_{\text{kh}} (\phi n ^ 2 + (1 - \phi) p) (V - E_{\text{K}})$$$
 
 #### ref
 - Hight and Kalluri, 2016
