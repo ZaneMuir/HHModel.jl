@@ -1,13 +1,13 @@
 using Pkg
 
-Pkg.add.(["DifferentialEquations",
-        "Plots",
+Pkg.add.([
+        "DifferentialEquations",
+        "Plots", # using GR. Or install other backends by yourself.
         "MAT",
         "HDF5",
         "IJulia",
-        "MultivariateStats",
-        "ProgressMeter",
-        "FFTW",
-        "DSP"])
+        "MultivariateStats", # for PCA analysis
+        "ProgressMeter"
+        ])
 
 using IJulia # install IJulia kernel
