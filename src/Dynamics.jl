@@ -168,7 +168,7 @@ function setup_init(channels::Vector{T}, v0::Real) where {T<:AbstractIonChannel}
     _init_val
 end
 
-function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepRangeLen, param::NamedTuple) where {T<:AbstractIonChannel}
+function trace_decompose(solution::ODESolution, model::Vector{T}, tspan::StepRangeLen, param::NamedTuple) where {T<:AbstractIonChannel}
     var = hcat(solution(tspan).u...)
     var_idx = 2
     _result = Vector{Vector{Float64}}(undef, length(model))
@@ -179,6 +179,10 @@ function current_decompose(solution::ODESolution, model::Vector{T}, tspan::StepR
         _name[idx] = Symbol(ch.name)
         var_idx += _var_step
     end
+    
+    push!(_name, :voltage)
+    push!(_result, var[1, :])
+    
     NamedTuple{Tuple(_name)}(_result)
 end
 
