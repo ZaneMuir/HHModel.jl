@@ -186,6 +186,20 @@ function trace_decompose(solution::ODESolution, model::Vector{T}, tspan::StepRan
     NamedTuple{Tuple(_name)}(_result)
 end
 
+function trace_decompose(bulk_sim::EnsembleSolution, model, tspan)
+    _traces = [trace_decompose(item, model, tspan, item.prob.p) for item in bulk_sim];
+    _name = Vector{Symbol}()
+    _value = Vector{Array{Float64, 2}}()
+    for ch in model
+        _tmp = hcat(map((x) -> x[Symbol(ch.name)], _traces)...)
+        push!(_name, Symbol(ch.name))
+        push!(_value, _tmp)
+    end
+    push!(_name, :voltage)
+    push!(_value, hcat(map((x) -> x.voltage, _traces)...))
+    return NamedTuple{Tuple(_name)}(_value)
+end
+
 # voltage clamp
 @doc raw"""
 simple conductance model, simple voltage clamp:
